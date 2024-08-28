@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách Dịch Vụ</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="toolbar">
+  <h1>Hệ Thống Quản Lý Phòng Khám Nha Khoa</h1>
+  <div class="toolbar-buttons">
+    <a href="benhnhan.html" class="button-like">Quản Lý Bệnh Nhân</a>
+    <a href="bienlai.html" class="button-like">Quản Lý Bien Lai</a>
+    <a href="hosokhambenh.html" class="button-like">Quản Lý Hồ Sơ Khám Bệnh</a>
+    <a href="phieukhambenh.html" class="button-like">Quản Lý Phiếu Khám Bệnh</a>
+    <a href="dichvu.html" class="button-like">Quản Lý Dịch Vụ</a>
+    <a href="LichHen.html" class="button-like">Quản Lý Lịch Hẹn</a>
+  </div>
+</div>
+<div class="container">
+  <!-- Form Thêm/Sửa Dịch Vụ -->
+  <div class="form-container">
+    <h2 id="form-title">Thêm/Cập Nhật Dịch Vụ</h2>
+    <form id="dichVuForm" onsubmit="handleSubmit(event);">
+      <!-- Hidden field để lưu ID dịch vụ (nếu có) -->
+      <input type="hidden" id="dichvu_id" name="dichvu_id">
+
+      <div class="form-group">
+        <label for="tenDichvu">Tên Dịch Vụ:</label>
+        <input type="text" id="tenDichvu" name="tenDichvu" required>
+      </div>
+
+      <div class="form-group">
+        <label for="chiPhi">Chi Phí:</label>
+        <input type="number" id="chiPhi" name="chiPhi" required>
+      </div>
+
+      <button type="submit" id="submitButton">Thêm</button>
+    </form>
+  </div>
+
+  <!-- Danh sách Dịch Vụ -->
+  <div class="table-container">
+    <h2>Danh sách Dịch Vụ</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tên Dịch Vụ</th>
+        <th>Chi Phí</th>
+        <th>Thao Tác</th>
+      </tr>
+      </thead>
+      <tbody id="dichvu-table-body">
+      <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<script>
+  const apiUrl = '/api/v1/dichvu';
+
+  // Load danh sách dịch vụ
+  function loadDichVu() {
+    fetch(`${apiUrl}/list`)
+            .then(response => response.json())
+            .then(data => {
+              const tableBody = document.getElementById('dichvu-table-body');
+              tableBody.innerHTML = ''; // Xóa dữ liệu cũ
+              data.forEach(dichVu => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+            <td>${dichVu.dichvuId}</td>
+            <td>${dichVu.tenDichvu}</td>
+            <td>${dichVu.chiPhi}</td>
+            <td>
+              <button onclick="editDichVu(${dichVu.dichvuId})">Sửa</button>
+              <button onclick="deleteDichVu(${dichVu.dichvuId})">Xóa</button>
+            </td>
+          `;
+                tableBody.appendChild(row);
+              });
+            })
+            .catch(error => console.error('Error fetching data:', error));
+  }
+
+  // Thêm hoặc cập nhật dịch vụ
+  function handleSubmit(event) {
+    event.preventDefault();
+
+    const dichvuId = document.getElementById('dichvu_id').value;
+    const tenDichvu = document.getElementById('tenDichvu').value;
+    const chiPhi = document.getElementById('chiPhi').value;
+
+    const dichVu = {
+      tenDichvu: tenDichvu,
+      chiPhi: chiPhi
+    };
+
+    // Nếu có ID thì là cập nhật, nếu không có ID thì là thêm mới
+    const method = dichvuId ? 'POST' : 'POST'; // Thêm có thể là POST, cập nhật có thể là PUT hoặc POST tùy API
+    const url = dichvuId ? `${apiUrl}/update` : `${apiUrl}/save`;
+
+    // Nếu là cập nhật, thêm ID vào đối tượng gửi lên
+    if (dichvuId) {
+      dichVu.dichvuId = dichvuId;
+    }
+
+    fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dichVu)
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert(data.message);
+                loadDichVu(); // Tải lại danh sách
+                resetForm(); // Reset form sau khi thêm/cập nhật
+              } else {
+                loadDichVu(); // Tải lại danh sách
+                resetForm(); // Reset form sau khi thêm/cập nhật
+              }
+            })
+            .catch(error => console.error('Error:', error));
+  }
+
+
+  // Chọn dịch vụ để chỉnh sửa
+  function editDichVu(id) {
+    fetch(`${apiUrl}/find/${id}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                const dichVu = data.data;
+                document.getElementById('dichvu_id').value = dichVu.dichvuId;
+                document.getElementById('tenDichvu').value = dichVu.tenDichvu;
+                document.getElementById('chiPhi').value = dichVu.chiPhi;
+                document.getElementById('submitButton').textContent = 'Cập Nhật'; // Đổi nút thành "Cập Nhật"
+              } else {
+                console.error('Lỗi:', data.message);
+              }
+            })
+            .catch(error => console.error('Lỗi:', error));
+  }
+
+  // Xóa dịch vụ
+  function deleteDichVu(id) {
+    fetch(`${apiUrl}/delete/${id}`, {
+      method: 'GET'
+    })
+            .then(response => response.json())
+            .then(() => {
+              loadDichVu(); // Tải lại danh sách
+            })
+            .catch(error => console.error('Error deleting data:', error));
+  }
+
+  // Reset form về trạng thái ban đầu
+  function resetForm() {
+    document.getElementById('dichvu_id').value = '';
+    document.getElementById('tenDichvu').value = '';
+    document.getElementById('chiPhi').value = '';
+    document.getElementById('submitButton').textContent = 'Thêm';// Đổi nút về "Thêm"
+  }
+
+  // Load danh sách ban đầu
+  loadDichVu();
+</script>
+</body>
+</html>

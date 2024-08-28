@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách Lịch Hẹn</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+<div class="toolbar">
+    <h1>Hệ Thống Quản Lý Phòng Khám Nha Khoa</h1>
+    <div class="toolbar-buttons">
+        <a href="benhnhan.html" class="button-like">Quản Lý Bệnh Nhân</a>
+        <a href="bienlai.html" class="button-like">Quản Lý Bien Lai</a>
+        <a href="hosokhambenh.html" class="button-like">Quản Lý Hồ Sơ Khám Bệnh</a>
+        <a href="phieukhambenh.html" class="button-like">Quản Lý Phiếu Khám Bệnh</a>
+        <a href="dichvu.html" class="button-like">Quản Lý Dịch Vụ</a>
+        <a href="LichHen.html" class="button-like">Quản Lý Lịch Hẹn</a>
+    </div>
+</div>
+<div class="container">
+    <!-- Form Thêm/Cập Nhật Lịch Hẹn -->
+    <div class="form-container">
+        <h2 id="form-title">Thêm/Cập Nhật Lịch Hẹn</h2>
+        <form id="lichHenForm" onsubmit="event.preventDefault(); submitForm();">
+            <input type="hidden" id="lichhen_id" name="lichhen_id">
+
+            <div class="form-group">
+                <label for="benhnhanId">ID Bệnh Nhân:</label>
+                <input type="text" id="benhnhanId" name="benhnhanId" required>
+            </div>
+
+            <div class="form-group">
+                <label for="ngayGioHen">Ngày Giờ Hẹn:</label>
+                <input type="datetime-local" id="ngayGioHen" name="ngayGioHen" required>
+            </div>
+
+            <div class="form-group">
+                <label for="trangThai">Trạng Thái:</label>
+                <input type="text" id="trangThai" name="trangThai">
+            </div>
+
+            <button type="submit" id="form-submit-button">Thêm</button>
+        </form>
+    </div>
+
+    <!-- Danh sách Lịch Hẹn -->
+    <div class="table-container">
+        <h2>Danh sách Lịch Hẹn</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>ID Bệnh Nhân</th>
+                <th>Ngày Giờ Hẹn</th>
+                <th>Trạng Thái</th>
+                <th>Thao Tác</th>
+            </tr>
+            </thead>
+            <tbody id="lichhen-table-body">
+            <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script>
+    const apiUrl = '/api/v1/lichhen';
+    let isEditing = false;
+
+    // Load danh sách lịch hẹn
+    function loadLichHen() {
+        fetch(`${apiUrl}/list`)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('lichhen-table-body');
+                tableBody.innerHTML = ''; // Xóa dữ liệu cũ
+                data.forEach(lichHen => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                            <td>${lichHen.lichhenId}</td>
+                            <td>${lichHen.benhnhanId}</td>
+                            <td>${lichHen.ngayGioHen}</td>
+                            <td>${lichHen.trangThai}</td>
+                            <td>
+                                <button onclick="editLichHen(${lichHen.lichhenId})">Sửa</button>
+                                <button onclick="deleteLichHen(${lichHen.lichhenId})">Xóa</button>
+                            </td>
+                        `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }
+
+    // Hàm xử lý khi gửi form (dùng chung cho thêm và cập nhật)
+    function submitForm() {
+        const id = document.getElementById('lichhen_id').value;
+        const lichHen = {
+            benhnhanId: document.getElementById('benhnhanId').value,
+            ngayGioHen: document.getElementById('ngayGioHen').value,
+            trangThai: document.getElementById('trangThai').value
+        };
+
+        if (isEditing) {
+            lichHen.lichhenId = id;
+            updateLichHen(lichHen);
+        } else {
+            addLichHen(lichHen);
+        }
+    }
+
+    // Thêm lịch hẹn
+    function addLichHen(lichHen) {
+        fetch(`${apiUrl}/save`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(lichHen)
+        })
+            .then(response => response.json())
+            .then(() => {
+                resetForm();
+                loadLichHen();
+            })
+            .catch(error => console.error('Error adding data:', error));
+    }
+
+    // Cập nhật lịch hẹn
+    function updateLichHen(lichHen) {
+        fetch(`${apiUrl}/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(lichHen)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    resetForm();
+                    loadLichHen();
+                } else {
+                    resetForm();
+                    loadLichHen();
+                }
+            })
+            .catch(error => console.error('Error updating data:', error));
+    }
+
+    // Chọn lịch hẹn để chỉnh sửa
+    function editLichHen(id) {
+        fetch(`${apiUrl}/find/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const lichHen = data.data;
+                    document.getElementById('lichhen_id').value = lichHen.lichhenId;
+                    document.getElementById('benhnhanId').value = lichHen.benhnhanId;
+                    document.getElementById('ngayGioHen').value = lichHen.ngayGioHen;
+                    document.getElementById('trangThai').value = lichHen.trangThai;
+                    document.getElementById('form-title').innerText = 'Cập Nhật Lịch Hẹn';
+                    document.getElementById('form-submit-button').innerText = 'Cập Nhật';
+                    isEditing = true;
+                } else {
+                    alert('Load lại trang: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }
+
+    // Xóa lịch hẹn
+    function deleteLichHen(id) {
+        fetch(`${apiUrl}/delete/${id}`, {
+            method: 'GET'
+        })
+            .then(response => response.json())
+            .then(() => {
+                loadLichHen();
+            })
+            .catch(error => console.error('Error deleting data:', error));
+    }
+
+    // Reset form về trạng thái ban đầu
+    function resetForm() {
+        document.getElementById('lichHenForm').reset();
+        document.getElementById('lichhen_id').value = '';
+        document.getElementById('form-title').innerText = 'Thêm Lịch Hẹn';
+        document.getElementById('form-submit-button').innerText = 'Thêm';
+        isEditing = false;
+    }
+
+    // Load danh sách ban đầu
+    loadLichHen();
+</script>
+</body>
+
+</html>

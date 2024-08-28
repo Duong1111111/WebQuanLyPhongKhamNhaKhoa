@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách Phiếu Khám Bệnh</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="toolbar">
+    <h1>Hệ Thống Quản Lý Phòng Khám Nha Khoa</h1>
+    <div class="toolbar-buttons">
+        <a href="benhnhan.html" class="button-like">Quản Lý Bệnh Nhân</a>
+        <a href="bienlai.html" class="button-like">Quản Lý Bien Lai</a>
+        <a href="hosokhambenh.html" class="button-like">Quản Lý Hồ Sơ Khám Bệnh</a>
+        <a href="phieukhambenh.html" class="button-like">Quản Lý Phiếu Khám Bệnh</a>
+        <a href="dichvu.html" class="button-like">Quản Lý Dịch Vụ</a>
+        <a href="LichHen.html" class="button-like">Quản Lý Lịch Hẹn</a>
+    </div>
+</div>
+<div class="container">
+    <!-- Form Thêm/Cập Nhật Phiếu Khám Bệnh -->
+    <div class="form-container">
+        <h2 id="form-title">Thêm/Cập Nhật Phiếu Khám Bệnh</h2>
+        <form id="phieuKhamBenhForm" onsubmit="event.preventDefault(); submitForm();">
+            <input type="hidden" id="phieukham_id" name="phieukham_id">
+
+            <div class="form-group">
+                <label for="hosokhamId">Hồ Sơ Khám ID:</label>
+                <input type="text" id="hosokhamId" name="hosokhamId" required>
+            </div>
+
+            <div class="form-group">
+                <label for="ngayKham">Ngày Khám:</label>
+                <input type="datetime-local" id="ngayKham" name="ngayKham" required>
+            </div>
+
+            <div class="form-group">
+                <label for="ghiChu">Ghi Chú:</label>
+                <textarea id="ghiChu" name="ghiChu"></textarea>
+            </div>
+
+            <button type="submit" id="form-submit-button">Thêm</button>
+        </form>
+    </div>
+
+    <!-- Danh sách Phiếu Khám Bệnh -->
+    <div class="table-container">
+        <h2>Danh sách Phiếu Khám Bệnh</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Hồ Sơ Khám ID</th>
+                <th>Ngày Khám</th>
+                <th>Ghi Chú</th>
+                <th>Thao Tác</th>
+            </tr>
+            </thead>
+            <tbody id="phieukhambenh-table-body">
+            <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script>
+    const apiUrl = '/api/v1/phieukhambenh';
+    let isEditing = false;
+
+    // Load danh sách phiếu khám bệnh
+    function loadPhieuKhamBenh() {
+        fetch(`${apiUrl}/list`)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('phieukhambenh-table-body');
+                tableBody.innerHTML = ''; // Xóa dữ liệu cũ
+                data.forEach(phieuKhamBenh => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+            <td>${phieuKhamBenh.phieukhamId}</td>
+            <td>${phieuKhamBenh.hosokhamId}</td>
+            <td>${new Date(phieuKhamBenh.ngayKham).toISOString().slice(0, 16)}</td> <!-- Định dạng ngày giờ -->
+            <td>${phieuKhamBenh.ghiChu}</td>
+            <td>
+              <button onclick="editPhieuKhamBenh(${phieuKhamBenh.phieukhamId})">Sửa</button>
+              <button onclick="deletePhieuKhamBenh(${phieuKhamBenh.phieukhamId})">Xóa</button>
+            </td>
+          `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }
+
+    // Hàm xử lý khi gửi form (dùng chung cho thêm và cập nhật)
+    function submitForm() {
+        const id = document.getElementById('phieukham_id').value;
+        const phieuKhamBenh = {
+            hosokhamId: document.getElementById('hosokhamId').value,
+            ngayKham: new Date(document.getElementById('ngayKham').value).toISOString(), // Chuyển đổi định dạng ngày giờ
+            ghiChu: document.getElementById('ghiChu').value
+        };
+
+        if (isEditing) {
+            phieuKhamBenh.phieukhamId = id;
+            updatePhieuKhamBenh(phieuKhamBenh);
+        } else {
+            addPhieuKhamBenh(phieuKhamBenh);
+        }
+    }
+
+    // Thêm phiếu khám bệnh
+    function addPhieuKhamBenh(phieuKhamBenh) {
+        fetch(`${apiUrl}/save`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(phieuKhamBenh)
+        })
+            .then(response => response.json())
+            .then(() => {
+                resetForm();
+                loadPhieuKhamBenh();
+            })
+            .catch(error => console.error('Error adding data:', error));
+    }
+
+    // Cập nhật phiếu khám bệnh
+    function updatePhieuKhamBenh(phieuKhamBenh) {
+        fetch(`${apiUrl}/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(phieuKhamBenh)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    resetForm();
+                    loadPhieuKhamBenh();
+                } else {
+                    resetForm();
+                    loadPhieuKhamBenh();
+                }
+            })
+            .catch(error => console.error('Error updating data:', error));
+    }
+
+    // Chọn phiếu khám bệnh để chỉnh sửa
+    function editPhieuKhamBenh(id) {
+        fetch(`${apiUrl}/find/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const phieuKhamBenh = data.data;
+                    document.getElementById('phieukham_id').value = phieuKhamBenh.phieukhamId;
+                    document.getElementById('hosokhamId').value = phieuKhamBenh.hosokhamId;
+                    document.getElementById('ngayKham').value = new Date(phieuKhamBenh.ngayKham).toISOString().slice(0, 16); // Chuyển đổi định dạng ngày giờ
+                    document.getElementById('ghiChu').value = phieuKhamBenh.ghiChu || '';
+                    document.getElementById('form-title').innerText = 'Cập Nhật Phiếu Khám Bệnh';
+                    document.getElementById('form-submit-button').innerText = 'Cập Nhật';
+                    isEditing = true;
+                } else {
+                    console.error('Load lại trang:', data.message);
+                }
+            })
+            .catch(error => console.error('Lỗi:', error));
+    }
+
+    // Xóa phiếu khám bệnh
+    function deletePhieuKhamBenh(id) {
+        fetch(`${apiUrl}/delete/${id}`, {
+            method: 'GET'
+        })
+            .then(response => response.json())
+            .then(() => {
+                loadPhieuKhamBenh();
+            })
+            .catch(error => console.error('Error deleting data:', error));
+    }
+
+    // Reset form về trạng thái ban đầu
+    function resetForm() {
+        document.getElementById('phieuKhamBenhForm').reset();
+        document.getElementById('phieukham_id').value = '';
+        document.getElementById('form-title').innerText = 'Thêm Phiếu Khám Bệnh';
+        document.getElementById('form-submit-button').innerText = 'Thêm';
+        isEditing = false;
+    }
+
+    // Load danh sách ban đầu
+    loadPhieuKhamBenh();
+</script>
+</body>
+</html>

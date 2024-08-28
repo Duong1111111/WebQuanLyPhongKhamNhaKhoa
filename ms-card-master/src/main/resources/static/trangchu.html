@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Chủ - Quản Lý Phòng Khám</title>
+    <style>
+        /* Cài đặt cơ bản */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(120deg, #e0f7fa, #b2ebf2);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Container chính */
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 2000px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            flex-grow: 1;
+        }
+        /* Header */
+        .header {
+            margin-bottom: 50px; /* Tạo khoảng cách giữa tiêu đề và các thẻ chức năng */
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 36px;
+            color: #00695c;
+            font-weight: bold;
+        }
+
+        p {
+            font-size: 18px;
+            color: #424242;
+            margin-bottom: 30px;
+        }
+
+        /* Thiết kế dạng card layout */
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            width: 100%;
+        }
+
+        .card {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .card a {
+            text-decoration: none;
+            color: #00796b;
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+
+        .card a:hover {
+            color: #004d40;
+        }
+
+        /* Icon trong card */
+        .card-icon {
+            font-size: 48px;
+            color: #00796b;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Hệ Thống Quản Lý Phòng Khám Nha Khoa</h1>
+    </div>
+    <div class="card-container">
+        <div class="card">
+            <div class="card-icon">👩‍⚕️</div>
+            <a href="benhnhan.html">Quản Lý Bệnh Nhân</a>
+        </div>
+        <div class="card">
+            <div class="card-icon">💵</div>
+            <a href="bienlai.html">Quản Lý Biên Lai</a>
+        </div>
+        <div class="card">
+            <div class="card-icon">🛠️</div>
+            <a href="dichvu.html">Quản Lý Dịch Vụ</a>
+        </div>
+        <div class="card">
+            <div class="card-icon">📋</div>
+            <a href="hosokhambenh.html">Quản Lý Hồ Sơ Khám Bệnh</a>
+        </div>
+        <div class="card">
+            <div class="card-icon">📝</div>
+            <a href="phieukhambenh.html">Quản Lý Phiếu Khám Bệnh</a>
+        </div>
+        <div class="card">
+            <div class="card-icon">📅</div>
+            <a href="LichHen.html">Quản Lý Lịch Hẹn</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

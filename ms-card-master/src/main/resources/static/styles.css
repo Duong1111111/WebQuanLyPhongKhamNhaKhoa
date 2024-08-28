@@ -1,0 +1,337 @@
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 20px;
+    background-color: #f4f7f6;
+    color: #333;
+    line-height: 1.6;
+}
+
+h1, h2 {
+    color: #333;
+    margin-bottom: 16px;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #f5f5f5;
+    color: #555;
+    border-bottom: 2px solid #ddd;
+    font-weight: 600;
+}
+
+td {
+    color: #666;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Form Styles */
+form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="datetime-local"],
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    font-size: 16px;
+    background-color: #fff;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="datetime-local"]:focus,
+textarea:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.25);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    background: #007bff;
+    border-radius: 4px;
+    padding: 2px;
+    cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+    background: #0056b3;
+}
+
+/* Button Styles */
+button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(38, 143, 255, 0.5);
+}
+
+/* Message Styles */
+.error {
+    color: #dc3545;
+    font-size: 14px;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+.success {
+    color: #28a745;
+    font-size: 14px;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    body {
+        margin: 10px;
+    }
+
+    table, form {
+        width: 100%;
+        box-shadow: none;
+    }
+
+    form {
+        padding: 15px;
+    }
+}
+body {
+    font-family: Arial, sans-serif;
+    background-color: #d1e5f0;
+    color: #333;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.toolbar {
+    background-color: #b0d7e7;
+    padding: 15px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.toolbar h1 {
+    margin: 0;
+}
+
+.toolbar-buttons {
+    margin-top: 10px;
+}
+
+.toolbar-buttons button {
+    background-color: #89b9c6;
+    border: none;
+    padding: 10px 20px;
+    margin-right: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.toolbar-buttons button:hover {
+    background-color: #7da9b6;
+}
+
+.form-container {
+    width: 45%;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    border: 1px solid #a8cad8;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #666;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #a8cdd8;
+    border-radius: 3px;
+}
+
+textarea {
+    resize: vertical;
+}
+
+button[type="submit"] {
+    background-color: #5c92a9;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button[type="submit"]:hover {
+    background-color: #4f6b9b;
+}
+
+.table-container {
+    width: 100%;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    border: 1px solid #a8cdd8;
+    max-height: 700px; /* Giới hạn chiều cao của container */
+    overflow-y: auto; /* Bật tính năng cuộn dọc */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+table th, table td {
+    border: 1px solid #a8cdd8;
+    padding: 8px;
+    text-align: left;
+    color: #555;
+}
+
+table th {
+    background-color: #b0dbe7;
+}
+
+table td button {
+    background-color: #d1e4f0;
+    border: 1px solid #a8cad8;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+table td button:hover {
+    background-color: #a8c2d8;
+}
+
+.table-container h2 {
+    margin-top: 0;
+}
+a.button-like,
+button {
+    background-color: #03a9f4;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 4px 2px;
+    transition: background-color 0.3s ease;
+}
+
+a.button-like:hover,
+button:hover {
+    background-color: #0288d1;
+}
+/* Nút Sửa và Xóa trong bảng */
+.table-container table button {
+    background-color: #4CAF50; /* Màu nền của nút */
+    color: white; /* Màu chữ của nút */
+    border: none; /* Xóa border mặc định */
+    padding: 10px 15px; /* Padding bên trong nút */
+    text-align: center; /* Canh giữa chữ */
+    text-decoration: none; /* Xóa gạch chân */
+    display: inline-block; /* Hiển thị dạng inline-block */
+    font-size: 14px; /* Kích thước chữ */
+    margin: 5px; /* Khoảng cách giữa các nút */
+    cursor: pointer; /* Con trỏ chuột khi hover */
+    border-radius: 3px; /* Bo tròn góc nút */
+    transition: background-color 0.3s ease; /* Hiệu ứng chuyển màu nền */
+}
+
+/* Nút Sửa */
+.table-container table button:nth-child(1) {
+    background-color: #4CAF50; /* Màu nền của nút Sửa */
+}
+
+.table-container table button:nth-child(1):hover {
+    background-color: #45a049; /* Màu nền khi hover */
+}
+
+/* Nút Xóa */
+.table-container table button:nth-child(2) {
+    background-color: #f44336; /* Màu nền của nút Xóa */
+}
+
+.table-container table button:nth-child(2):hover {
+    background-color: #e53935; /* Màu nền khi hover */
+}
+

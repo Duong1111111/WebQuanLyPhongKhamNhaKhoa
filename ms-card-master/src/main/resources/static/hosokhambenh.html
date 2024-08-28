@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách Hồ Sơ Khám Bệnh</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="toolbar">
+    <h1>Hệ Thống Quản Lý Phòng Khám Nha Khoa</h1>
+    <div class="toolbar-buttons">
+        <a href="benhnhan.html" class="button-like">Quản Lý Bệnh Nhân</a>
+        <a href="bienlai.html" class="button-like">Quản Lý Bien Lai</a>
+        <a href="hosokhambenh.html" class="button-like">Quản Lý Hồ Sơ Khám Bệnh</a>
+        <a href="phieukhambenh.html" class="button-like">Quản Lý Phiếu Khám Bệnh</a>
+        <a href="dichvu.html" class="button-like">Quản Lý Dịch Vụ</a>
+        <a href="LichHen.html" class="button-like">Quản Lý Lịch Hẹn</a>
+    </div>
+</div>
+<div class="container">
+    <!-- Form Thêm/Cập Nhật Hồ Sơ Khám Bệnh -->
+    <div class="form-container">
+        <h2 id="form-title">Thêm/Cập Nhật Hồ Sơ Khám Bệnh</h2>
+        <form id="hoSoKhamBenhForm" onsubmit="event.preventDefault(); submitForm();">
+            <input type="hidden" id="hoSoKhamId" name="hoSoKhamId">
+
+            <div class="form-group">
+                <label for="benhnhanId">ID Bệnh Nhân:</label>
+                <input type="number" id="benhnhanId" name="benhnhanId" required>
+            </div>
+
+            <div class="form-group">
+                <label for="lichhenId">ID Lịch Hẹn:</label>
+                <input type="number" id="lichhenId" name="lichhenId" required>
+            </div>
+
+            <div class="form-group">
+                <label for="lanKham">Lần Khám:</label>
+                <input type="number" id="lanKham" name="lanKham" required>
+            </div>
+
+            <div class="form-group">
+                <label for="trieuChung">Triệu Chứng:</label>
+                <textarea id="trieuChung" name="trieuChung"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="chanDoan">Chẩn Đoán:</label>
+                <textarea id="chanDoan" name="chanDoan"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="huongDieuTri">Hướng Điều Trị:</label>
+                <textarea id="huongDieuTri" name="huongDieuTri"></textarea>
+            </div>
+
+            <button type="submit" id="form-submit-button">Thêm</button>
+        </form>
+    </div>
+
+    <!-- Danh sách Hồ Sơ Khám Bệnh -->
+    <div class="table-container">
+        <h2>Danh sách Hồ Sơ Khám Bệnh</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>ID Bệnh Nhân</th>
+                <th>ID Lịch Hẹn</th>
+                <th>Lần Khám</th>
+                <th>Triệu Chứng</th>
+                <th>Chẩn Đoán</th>
+                <th>Hướng Điều Trị</th>
+                <th>Thao Tác</th>
+            </tr>
+            </thead>
+            <tbody id="hosokhambenh-table-body">
+            <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script>
+    const apiUrl = '/api/v1/hosokhambenh';
+    let isEditing = false;
+
+    // Load danh sách hồ sơ khám bệnh
+    function loadHoSoKhamBenh() {
+        fetch(`${apiUrl}/list`)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('hosokhambenh-table-body');
+                tableBody.innerHTML = ''; // Xóa dữ liệu cũ
+                data.forEach(hoSoKhamBenh => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${hoSoKhamBenh.hoSoKhamId}</td>
+                        <td>${hoSoKhamBenh.benhnhanId}</td>
+                        <td>${hoSoKhamBenh.lichhenId}</td>
+                        <td>${hoSoKhamBenh.lanKham}</td>
+                        <td>${hoSoKhamBenh.trieuChung}</td>
+                        <td>${hoSoKhamBenh.chanDoan}</td>
+                        <td>${hoSoKhamBenh.huongDieuTri}</td>
+                        <td>
+                            <button onclick="editHoSoKhamBenh(${hoSoKhamBenh.hoSoKhamId})">Sửa</button>
+                            <button onclick="deleteHoSoKhamBenh(${hoSoKhamBenh.hoSoKhamId})">Xóa</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }
+
+    // Hàm xử lý khi gửi form (dùng chung cho thêm và cập nhật)
+    function submitForm() {
+        const id = document.getElementById('hoSoKhamId').value;
+        const hoSoKhamBenh = {
+            benhnhanId: document.getElementById('benhnhanId').value,
+            lichhenId: document.getElementById('lichhenId').value,
+            lanKham: document.getElementById('lanKham').value,
+            trieuChung: document.getElementById('trieuChung').value,
+            chanDoan: document.getElementById('chanDoan').value,
+            huongDieuTri: document.getElementById('huongDieuTri').value
+        };
+
+        if (isEditing) {
+            hoSoKhamBenh.hoSoKhamId = id;
+            updateHoSoKhamBenh(hoSoKhamBenh);
+        } else {
+            addHoSoKhamBenh(hoSoKhamBenh);
+        }
+    }
+
+    // Thêm hồ sơ khám bệnh
+    function addHoSoKhamBenh(hoSoKhamBenh) {
+        fetch(`${apiUrl}/save`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(hoSoKhamBenh)
+        })
+            .then(response => response.json())
+            .then(() => {
+                resetForm();
+                loadHoSoKhamBenh();
+            })
+            .catch(error => console.error('Error adding data:', error));
+    }
+
+    // Cập nhật hồ sơ khám bệnh
+    function updateHoSoKhamBenh(hoSoKhamBenh) {
+        fetch(`${apiUrl}/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(hoSoKhamBenh)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    resetForm();
+                    loadHoSoKhamBenh();
+                } else {
+                    resetForm();
+                    loadHoSoKhamBenh();
+                }
+            })
+            .catch(error => console.error('Error updating data:', error));
+    }
+
+    // Chọn hồ sơ khám bệnh để chỉnh sửa
+    function editHoSoKhamBenh(id) {
+        fetch(`${apiUrl}/find/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const hoSoKhamBenh = data.data;
+                    document.getElementById('hoSoKhamId').value = hoSoKhamBenh.hoSoKhamId;
+                    document.getElementById('benhnhanId').value = hoSoKhamBenh.benhnhanId;
+                    document.getElementById('lichhenId').value = hoSoKhamBenh.lichhenId;
+                    document.getElementById('lanKham').value = hoSoKhamBenh.lanKham;
+                    document.getElementById('trieuChung').value = hoSoKhamBenh.trieuChung;
+                    document.getElementById('chanDoan').value = hoSoKhamBenh.chanDoan;
+                    document.getElementById('huongDieuTri').value = hoSoKhamBenh.huongDieuTri;
+
+                    document.getElementById('form-title').innerText = 'Cập Nhật Hồ Sơ Khám Bệnh';
+                    document.getElementById('form-submit-button').innerText = 'Cập Nhật';
+                    isEditing = true;
+                } else {
+                    console.error('Load lại trang:', data.message);
+                }
+            })
+            .catch(error => console.error('Lỗi:', error));
+    }
+
+    // Xóa hồ sơ khám bệnh
+    function deleteHoSoKhamBenh(id) {
+        fetch(`${apiUrl}/delete/${id}`, {
+            method: 'GET'
+        })
+            .then(response => response.json())
+            .then(() => {
+                loadHoSoKhamBenh();
+            })
+            .catch(error => console.error('Error deleting data:', error));
+    }
+
+    // Reset form về trạng thái ban đầu
+    function resetForm() {
+        document.getElementById('hoSoKhamBenhForm').reset();
+        document.getElementById('hoSoKhamId').value = '';
+        document.getElementById('form-title').innerText = 'Thêm Hồ Sơ Khám Bệnh';
+        document.getElementById('form-submit-button').innerText = 'Thêm';
+        isEditing = false;
+    }
+
+    // Load danh sách ban đầu
+    loadHoSoKhamBenh();
+</script>
+</body>
+</html>

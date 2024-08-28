@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách Bệnh Nhân</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="toolbar">
+  <h1>Hệ Thống Quản Lý Phòng Khám Nha Khoa</h1>
+  <div class="toolbar-buttons">
+    <a href="benhnhan.html" class="button-like">Quản Lý Bệnh Nhân</a>
+    <a href="bienlai.html" class="button-like">Quản Lý Bien Lai</a>
+    <a href="hosokhambenh.html" class="button-like">Quản Lý Hồ Sơ Khám Bệnh</a>
+    <a href="phieukhambenh.html" class="button-like">Quản Lý Phiếu Khám Bệnh</a>
+    <a href="dichvu.html" class="button-like">Quản Lý Dịch Vụ</a>
+    <a href="LichHen.html" class="button-like">Quản Lý Lịch Hẹn</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="form-container">
+    <h2 id="form-title">Quản Lý Bệnh Nhân</h2>
+    <form id="benhNhanForm" onsubmit="event.preventDefault(); submitForm();">
+      <input type="hidden" id="benhnhan_id" name="benhnhan_id">
+
+      <div class="form-group">
+        <label for="hoTen">Họ và Tên:</label>
+        <input type="text" id="hoTen" name="hoTen" required>
+      </div>
+
+      <div class="form-group">
+        <label for="ngaySinh">Ngày Sinh:</label>
+        <input type="date" id="ngaySinh" name="ngaySinh" required>
+      </div>
+
+      <div class="form-group">
+        <label for="diaChi">Địa Chỉ:</label>
+        <input type="text" id="diaChi" name="diaChi">
+      </div>
+
+      <div class="form-group">
+        <label for="soDienThoai">Số Điện Thoại:</label>
+        <input type="text" id="soDienThoai" name="soDienThoai">
+      </div>
+
+      <div class="form-group">
+        <label for="tienSuBenhLy">Tiền Sử Bệnh Lý:</label>
+        <textarea id="tienSuBenhLy" name="tienSuBenhLy"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="tienSuBenhLy">Giới tính:</label>
+        <textarea id="gioitinh" name="gioitinh"></textarea>
+      </div>
+
+      <button type="submit" id="form-submit-button">Thêm</button>
+    </form>
+  </div>
+
+  <div class="table-container">
+    <h2>Danh sách Bệnh Nhân</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Họ và Tên</th>
+        <th>Ngày Sinh</th>
+        <th>Địa Chỉ</th>
+        <th>Số Điện Thoại</th>
+        <th>Tiền Sử Bệnh Lý</th>
+        <th>Thao Tác</th>
+      </tr>
+      </thead>
+      <tbody id="benhnhan-table-body">
+      <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const apiUrl = '/api/v1/benhnhan';
+  let isEditing = false;
+
+  // Load danh sách bệnh nhân
+  function loadBenhNhan() {
+    fetch(`${apiUrl}/list`)
+            .then(response => response.json())
+            .then(data => {
+              const tableBody = document.getElementById('benhnhan-table-body');
+              tableBody.innerHTML = ''; // Xóa dữ liệu cũ
+              data.forEach(benhNhan => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+            <td>${benhNhan.benhnhanId}</td>
+            <td>${benhNhan.hoTen}</td>
+            <td>${benhNhan.ngaySinh}</td>
+            <td>${benhNhan.diaChi}</td>
+            <td>${benhNhan.soDienThoai}</td>
+            <td>${benhNhan.tienSuBenhLy}</td>
+            <td>
+              <button onclick="editBenhNhan(${benhNhan.benhnhanId})">Sửa</button>
+              <button onclick="deleteBenhNhan(${benhNhan.benhnhanId})">Xóa</button>
+            </td>
+          `;
+                tableBody.appendChild(row);
+              });
+            })
+            .catch(error => console.error('Error fetching data:', error));
+  }
+
+  // Hàm xử lý khi gửi form (dùng chung cho thêm và cập nhật)
+  function submitForm() {
+    const id = document.getElementById('benhnhan_id').value;
+    const benhNhan = {
+      hoTen: document.getElementById('hoTen').value,
+      ngaySinh: document.getElementById('ngaySinh').value,
+      diaChi: document.getElementById('diaChi').value,
+      soDienThoai: document.getElementById('soDienThoai').value,
+      tienSuBenhLy: document.getElementById('tienSuBenhLy').value
+    };
+
+    if (isEditing) {
+      benhNhan.benhnhanId = id;
+      updateBenhNhan(benhNhan);
+    } else {
+      addBenhNhan(benhNhan);
+    }
+  }
+
+  // Thêm bệnh nhân
+  function addBenhNhan(benhNhan) {
+    fetch(`${apiUrl}/save`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(benhNhan)
+    })
+            .then(response => response.json())
+            .then(() => {
+              resetForm();
+              loadBenhNhan();
+            })
+            .catch(error => console.error('Error adding data:', error));
+  }
+
+  // Cập nhật bệnh nhân
+  function updateBenhNhan(benhNhan) {
+    fetch(`${apiUrl}/update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(benhNhan)
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert(data.message);
+                resetForm();
+                loadBenhNhan();
+              } else {
+                resetForm();
+                loadBenhNhan();
+              }
+            })
+            .catch(error => console.error('Error updating data:', error));
+  }
+
+  // Chọn bệnh nhân để chỉnh sửa
+  function editBenhNhan(id) {
+    fetch(`${apiUrl}/find/${id}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                const benhNhan = data.data;
+                document.getElementById('benhnhan_id').value = benhNhan.benhnhanId;
+                document.getElementById('hoTen').value = benhNhan.hoTen;
+                document.getElementById('ngaySinh').value = benhNhan.ngaySinh;
+                document.getElementById('diaChi').value = benhNhan.diaChi;
+                document.getElementById('soDienThoai').value = benhNhan.soDienThoai;
+                document.getElementById('tienSuBenhLy').value = benhNhan.tienSuBenhLy;
+                document.getElementById('form-title').innerText = 'Cập Nhật Bệnh Nhân';
+                document.getElementById('form-submit-button').innerText = 'Cập Nhật';
+                isEditing = true;
+              } else {
+                console.error('Load lại trang:', data.message);
+              }
+            })
+            .catch(error => console.error('Lỗi:', error));
+  }
+
+  // Xóa bệnh nhân
+  function deleteBenhNhan(id) {
+    fetch(`${apiUrl}/delete/${id}`, {
+      method: 'GET'
+    })
+            .then(response => response.json())
+            .then(() => {
+              loadBenhNhan();
+            })
+            .catch(error => console.error('Error deleting data:', error));
+  }
+
+  // Reset form về trạng thái ban đầu
+  function resetForm() {
+    document.getElementById('benhNhanForm').reset();
+    document.getElementById('benhnhan_id').value = '';
+    document.getElementById('form-title').innerText = 'Thêm Bệnh Nhân';
+    document.getElementById('form-submit-button').innerText = 'Thêm';
+    isEditing = false;
+  }
+
+  // Load danh sách ban đầu
+  loadBenhNhan();
+</script>
+</body>
+</html>

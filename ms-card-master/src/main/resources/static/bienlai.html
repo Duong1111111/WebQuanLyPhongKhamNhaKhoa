@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách Biên Lai</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="toolbar">
+  <h1>Hệ Thống Quản Lý Phòng Khám Nha Khoa</h1>
+  <div class="toolbar-buttons">
+    <a href="benhnhan.html" class="button-like">Quản Lý Bệnh Nhân</a>
+    <a href="bienlai.html" class="button-like">Quản Lý Bien Lai</a>
+    <a href="hosokhambenh.html" class="button-like">Quản Lý Hồ Sơ Khám Bệnh</a>
+    <a href="phieukhambenh.html" class="button-like">Quản Lý Phiếu Khám Bệnh</a>
+    <a href="dichvu.html" class="button-like">Quản Lý Dịch Vụ</a>
+    <a href="LichHen.html" class="button-like">Quản Lý Lịch Hẹn</a>
+  </div>
+</div>
+
+
+<div class="container">
+  <!-- Form Thêm/Cập Nhật Biên Lai -->
+  <div class="form-container">
+    <h2 id="form-title">Thêm/Cập Nhật Biên Lai</h2>
+    <form id="bienLaiForm" onsubmit="event.preventDefault(); submitForm();">
+      <input type="hidden" id="bienlai_id" name="bienlai_id">
+
+      <div class="form-group">
+        <label for="phieukhamId">Phiếu Khám ID:</label>
+        <input type="number" id="phieukhamId" name="phieukhamId" required>
+      </div>
+
+      <div class="form-group">
+        <label for="dichvuId">Dịch Vụ ID:</label>
+        <input type="number" id="dichvuId" name="dichvuId" required>
+      </div>
+
+      <div class="form-group">
+        <label for="tongTien">Tổng Tiền:</label>
+        <input type="number" id="tongTien" name="tongTien" step="0.01" required>
+      </div>
+
+      <div class="form-group">
+        <label for="ngayThanhToan">Ngày Thanh Toán:</label>
+        <input type="datetime-local" id="ngayThanhToan" name="ngayThanhToan" required>
+      </div>
+
+      <div class="form-group">
+        <label for="soBienLai">Số Biên Lai:</label>
+        <input type="text" id="soBienLai" name="soBienLai">
+      </div>
+
+      <button type="submit" id="form-submit-button">Thêm</button>
+    </form>
+  </div>
+
+  <!-- Danh sách Biên Lai -->
+  <div class="table-container">
+    <h2>Danh sách Biên Lai</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Phiếu Khám ID</th>
+        <th>Dịch Vụ ID</th>
+        <th>Tổng Tiền</th>
+        <th>Ngày Thanh Toán</th>
+        <th>Số Biên Lai</th>
+        <th>Thao Tác</th>
+      </tr>
+      </thead>
+      <tbody id="bienlai-table-body">
+      <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<script>
+  const apiUrl = '/api/v1/bienlai';
+  let isEditing = false;
+
+  // Load danh sách biên lai
+  function loadBienLai() {
+    fetch(`${apiUrl}/list`)
+            .then(response => response.json())
+            .then(data => {
+              const tableBody = document.getElementById('bienlai-table-body');
+              tableBody.innerHTML = ''; // Xóa dữ liệu cũ
+              data.forEach(bienLai => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+            <td>${bienLai.bienlaiId}</td>
+            <td>${bienLai.phieukhamId}</td>
+            <td>${bienLai.dichvuId}</td>
+            <td>${bienLai.tongTien}</td>
+            <td>${new Date(bienLai.ngayThanhToan).toLocaleString()}</td>
+            <td>${bienLai.soBienLai}</td>
+            <td>
+              <button onclick="editBienLai(${bienLai.bienlaiId})">Sửa</button>
+              <button onclick="deleteBienLai(${bienLai.bienlaiId})">Xóa</button>
+            </td>
+          `;
+                tableBody.appendChild(row);
+              });
+            })
+            .catch(error => console.error('Error fetching data:', error));
+  }
+
+  // Hàm xử lý khi gửi form (dùng chung cho thêm và cập nhật)
+  function submitForm() {
+    const id = document.getElementById('bienlai_id').value;
+    const bienLai = {
+      phieukhamId: document.getElementById('phieukhamId').value,
+      dichvuId: document.getElementById('dichvuId').value,
+      tongTien: parseFloat(document.getElementById('tongTien').value),
+      ngayThanhToan: new Date(document.getElementById('ngayThanhToan').value).toISOString(),
+      soBienLai: document.getElementById('soBienLai').value
+    };
+
+    if (isEditing) {
+      bienLai.bienlaiId = id;
+      updateBienLai(bienLai);
+    } else {
+      addBienLai(bienLai);
+    }
+  }
+
+  // Thêm biên lai
+  function addBienLai(bienLai) {
+    fetch(`${apiUrl}/save`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(bienLai)
+    })
+            .then(response => response.json())
+            .then(() => {
+              resetForm();
+              loadBienLai();
+            })
+            .catch(error => console.error('Error adding data:', error));
+  }
+
+  // Cập nhật biên lai
+  function updateBienLai(bienLai) {
+    fetch(`${apiUrl}/update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(bienLai)
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert(data.message);
+                resetForm();
+                loadBienLai();
+              } else {
+                resetForm();
+                loadBienLai();
+              }
+            })
+            .catch(error => console.error('Error updating data:', error));
+  }
+
+  // Chọn biên lai để chỉnh sửa
+  function editBienLai(id) {
+    fetch(`${apiUrl}/find/${id}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                const bienLai = data.data;
+                document.getElementById('bienlai_id').value = bienLai.bienlaiId;
+                document.getElementById('phieukhamId').value = bienLai.phieukhamId;
+                document.getElementById('dichvuId').value = bienLai.dichvuId;
+                document.getElementById('tongTien').value = bienLai.tongTien;
+                document.getElementById('ngayThanhToan').value = new Date(bienLai.ngayThanhToan).toISOString().slice(0, 16);
+                document.getElementById('soBienLai').value = bienLai.soBienLai;
+                document.getElementById('form-title').innerText = 'Cập Nhật Biên Lai';
+                document.getElementById('form-submit-button').innerText = 'Cập Nhật';
+                isEditing = true;
+              } else {
+                console.error('Load lại trang:', data.message);
+              }
+            })
+            .catch(error => console.error('Lỗi:', error));
+  }
+
+  // Xóa biên lai
+  function deleteBienLai(id) {
+    fetch(`${apiUrl}/delete/${id}`, {
+      method: 'GET'
+    })
+            .then(response => response.json())
+            .then(() => {
+              loadBienLai();
+            })
+            .catch(error => console.error('Error deleting data:', error));
+  }
+
+  // Reset form về trạng thái ban đầu
+  function resetForm() {
+    document.getElementById('bienLaiForm').reset();
+    document.getElementById('bienlai_id').value = '';
+    document.getElementById('form-title').innerText = 'Thêm Biên Lai';
+    document.getElementById('form-submit-button').innerText = 'Thêm';
+    isEditing = false;
+  }
+
+  // Load danh sách ban đầu
+  loadBienLai();
+</script>
+</body>
+</html>
